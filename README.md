@@ -3,18 +3,16 @@
 marketing operator with a five-year fintech background. i build the systems
 that let AI eat the grunt work so the strategic and creative work gets the
 hours it deserves. that's the thesis behind everything on this profile:
-**#brainsandbots** — AI frees people for the work that matters. it doesn't
+ AI frees people for the work that matters. it doesn't
 replace them.
 
-currently building **Rubedo** — the operating system for independent fitness
-professionals.
+currently building **Rubedo** [BETA]
 
 ---
 
 ## 🧰 [marketing-skills](https://github.com/heykeerthi/marketing-skills)
 
-the skills i actually run, published as files any AI can execute. not a prompt
-library — prompts prove you used AI once. these are systems: each one has a
+the skills i actually run, published as files any AI can execute. these are systems: each one has a
 method, a template, and a gate that defaults to "not yet." sixteen skills in
 four stacks:
 
@@ -46,16 +44,14 @@ then it's a skill, and the skill is free above.
 
 ---
 
-## 🏗️ rubedo — proof i ship (private repo)
+## 🏗️ rubedo — [private repo]
 
 i'm a non-technical marketer, and there is a working SaaS product in my
-GitHub. client roster, session calendar, gym-floor workout logging (3 taps a
-set), payment tracking, progress photos, and a premium client share page —
+GitHub. Coming out soon. 
+
 Next.js + Supabase, row-level security on every table, installable PWA.
 
-built end-to-end with AI as the engineering team and me as product, brand,
-strategy, and QA. the repo stays private because the strategy is the moat;
-the point here is that the sentence "a marketer shipped this" is now true.
+built end-to-end with AI. 
 
 ## ✍️ the linkedin content system (private; method published as skills)
 
