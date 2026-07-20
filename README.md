@@ -4,5 +4,5 @@ Every few days I automate another boring part of marketing and ship it here: ski
 
 **Into:** campaigns / crypto-fintech / building with Claude Code
 
-📍 currently: automating my way through a marketing stack, one tool at a time. Also building a B2B Fit-tech product [stealth] 
+📍 currently: automating my way through a marketing stack, one tool at a time. Also building a Fit-tech product [stealth] 
 🔗 [linkedin.com/in/keerthi-narendra](#) 
