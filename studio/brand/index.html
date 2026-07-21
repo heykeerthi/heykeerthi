@@ -92,6 +92,20 @@
   footer{max-width:1400px; margin:10px auto 40px; padding:0 24px; font-size:.78rem; color:var(--ink-faint);}
   @keyframes slide{ 0%{transform:translateX(-100%);} 60%{transform:translateX(180%);} 100%{transform:translateX(180%);} }
   @media(max-width:860px){ #pvArtGrid{grid-template-columns:1fr !important;} }
+  .filein{width:100%; font-family:inherit; font-size:.8rem; color:var(--ink-soft); padding:9px 10px; border:1px dashed var(--line); border-radius:10px; background:var(--bg);}
+  .filein::file-selector-button{
+    font-family:inherit; font-weight:600; font-size:.76rem; margin-right:10px; cursor:pointer;
+    padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:var(--bg-soft); color:var(--ink);
+  }
+  .asset-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px;}
+  .thumb{position:relative; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--bg-soft);}
+  .thumb img{display:block; width:100%; height:100px; object-fit:cover;}
+  .thumb .nm{padding:6px 10px; font-size:.68rem; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .thumb .rm{
+    position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(23,23,26,.75); color:#fff; font-size:.75rem; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pv-logo{max-height:46px; max-width:200px; margin-bottom:16px; display:block;}
 </style>
 </head>
 <body>
@@ -161,7 +175,17 @@ soft gradient mesh in accent colors</textarea>
       <label for="bMotion">Motion, animation &amp; GIFs</label>
       <textarea id="bMotion">Calm and precise: 200–300ms ease-out, elements slide and fade. Signature move: accent underline draws in left to right. GIFs sparingly — subtle seamless loops only.</textarea>
 
-      <label for="bAssets">Asset library links — logos, font files, illustrations, photo sets (one per line)</label>
+      <label for="upLogo">Logo file (SVG or PNG)</label>
+      <input type="file" id="upLogo" accept="image/*,.svg" class="filein">
+
+      <label for="upImagery">Imagery — illustrations &amp; photography (multiple)</label>
+      <input type="file" id="upImagery" accept="image/*" multiple class="filein">
+
+      <label for="upMotion">Motion — GIFs &amp; animated loops (multiple)</label>
+      <input type="file" id="upMotion" accept="image/gif,image/webp,image/apng" multiple class="filein">
+      <p class="hint" style="margin:8px 0 0;">Files never leave your browser — they're embedded into the studio preview and the downloaded HTML. Keep total under ~10&nbsp;MB so the file stays portable.</p>
+
+      <label for="bAssets">Asset library links — full packs hosted elsewhere (one per line)</label>
       <textarea id="bAssets" placeholder="https://drive.google.com/…  (logo pack)
 https://fonts.google.com/…  (type)
 https://figma.com/…  (illustration library)"></textarea>
@@ -177,6 +201,7 @@ https://figma.com/…  (illustration library)"></textarea>
 
   <div class="studio" id="studio">
     <div class="studio-head" id="pvHead">
+      <img id="pvLogo" class="pv-logo" alt="logo" style="display:none;">
       <div class="eyebrow">Brand System</div>
       <h2 id="pvName">Acme Protocol</h2>
       <div class="tag" id="pvTag">Infrastructure that just works</div>
@@ -238,6 +263,16 @@ https://figma.com/…  (illustration library)"></textarea>
       <div class="note" id="pvAssets" style="margin-top:14px; font-size:.78rem; color:var(--ink-faint);"></div>
     </div>
 
+    <div class="sec" id="pvImagerySec" style="display:none;">
+      <h3>Imagery</h3>
+      <div class="asset-grid" id="pvImagery"></div>
+    </div>
+
+    <div class="sec" id="pvMotionSec" style="display:none;">
+      <h3>Motion Assets</h3>
+      <div class="asset-grid" id="pvMotionAssets"></div>
+    </div>
+
     <div class="sec">
       <h3>In the wild — social card</h3>
       <div class="social-mock" id="pvSocial">
@@ -257,6 +292,32 @@ https://figma.com/…  (illustration library)"></textarea>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var loadedFonts = {};
+  var uploads = { logo: null, imagery: [], motion: [] };
+
+  function readFiles(fileList, cb){
+    Array.prototype.forEach.call(fileList, function(f){
+      var r = new FileReader();
+      r.onload = function(){ cb({ name: f.name, dataUrl: r.result }); };
+      r.readAsDataURL(f);
+    });
+  }
+  $('upLogo').addEventListener('change', function(){
+    if(!this.files.length){ return; }
+    readFiles([this.files[0]], function(a){ uploads.logo = a; render(); });
+  });
+  $('upImagery').addEventListener('change', function(){
+    readFiles(this.files, function(a){ uploads.imagery.push(a); render(); });
+    this.value = '';
+  });
+  $('upMotion').addEventListener('change', function(){
+    readFiles(this.files, function(a){ uploads.motion.push(a); render(); });
+    this.value = '';
+  });
+  window.removeAsset = function(kind, idx){
+    if(kind === 'logo'){ uploads.logo = null; $('upLogo').value = ''; }
+    else { uploads[kind].splice(idx, 1); }
+    render();
+  };
 
   function loadFont(name){
     var key = name.trim();
@@ -374,6 +435,22 @@ https://figma.com/…  (illustration library)"></textarea>
       ? '<b style="color:var(--ink-soft);">Asset library:</b> ' + s.asset_links.map(function(u){ return '<a href="' + u.split(/\s/)[0] + '" target="_blank" rel="noopener" style="color:' + s.color.accent + '; text-decoration:none;">' + u + '</a>'; }).join(' · ')
       : '';
 
+    // uploaded assets
+    var lg = $('pvLogo');
+    if(uploads.logo){ lg.src = uploads.logo.dataUrl; lg.style.display = 'block'; }
+    else { lg.style.display = 'none'; lg.removeAttribute('src'); }
+
+    function grid(list, kind){
+      return list.map(function(a, i){
+        return '<div class="thumb"><button class="rm" onclick="removeAsset(\'' + kind + '\',' + i + ')" title="remove">×</button>' +
+          '<img src="' + a.dataUrl + '" alt=""><div class="nm">' + a.name + '</div></div>';
+      }).join('');
+    }
+    $('pvImagerySec').style.display = uploads.imagery.length ? '' : 'none';
+    $('pvImagery').innerHTML = grid(uploads.imagery, 'imagery');
+    $('pvMotionSec').style.display = uploads.motion.length ? '' : 'none';
+    $('pvMotionAssets').innerHTML = grid(uploads.motion, 'motion');
+
     var sm = $('pvSocial');
     sm.style.background = s.color.ground;
     sm.style.color = s.color.ink;
@@ -403,7 +480,13 @@ https://figma.com/…  (illustration library)"></textarea>
   }
 
   function tokensJSON(){
-    return JSON.stringify(state(), null, 2);
+    var s = state();
+    s.uploaded_assets = {
+      logo: uploads.logo ? uploads.logo.name : null,
+      imagery: uploads.imagery.map(function(a){ return a.name; }),
+      motion: uploads.motion.map(function(a){ return a.name; })
+    };
+    return JSON.stringify(s, null, 2);
   }
 
   function studioPrompt(){
@@ -425,6 +508,8 @@ https://figma.com/…  (illustration library)"></textarea>
 '',
 'Hard requirements: every color on the page must come from the tokens (derive shades only by lightening/darkening a token). Respect every "never" rule. Text contrast must meet 4.5:1. The page must be responsive and elegant — generous whitespace, consistent border radius, one shadow style.',
 '',
+'UPLOADED ASSETS: the tokens list uploaded asset filenames (logo, imagery, motion). If you were given these files alongside this prompt, embed and use them in the matching sections. If not, render clearly-labeled placeholder slots with each filename so the owner can drop the real files in — never substitute stock or invented imagery.',
+'',
 'DESIGN TOKENS:',
 tokensJSON()
     ].join('\n');
@@ -436,6 +521,7 @@ tokensJSON()
   $('downloadStudio').addEventListener('click', function(){
     var s = state();
     var clone = document.getElementById('studio').cloneNode(true);
+    clone.querySelectorAll('.rm').forEach(function(b){ b.remove(); });
     var html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' + s.brand + ' — Brand Studio</title>' +
       '<link href="https://fonts.googleapis.com/css2?family=' + encodeURIComponent(s.type.display).replace(/%20/g,'+') + ':wght@400;600;700&family=' + encodeURIComponent(s.type.body).replace(/%20/g,'+') + ':wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">' +
       '<style>' + document.querySelector('style').textContent + ' body{background:#F7F7F9; padding:24px;} .studio{max-width:960px; margin:0 auto;}</style></head><body>' +
