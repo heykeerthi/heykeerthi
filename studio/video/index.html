@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch Video Studio — idea in, storyboard out</title>
+<meta name="description" content="Give it a rough launch idea; get a detailed, frame-by-frame storyboard with paste-ready AI-video generation prompts for every shot.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF; --bg-soft:#F7F7F9; --card:#FCFCFD; --ink:#1D1D1F; --ink-soft:#55555C;
+    --ink-faint:#8A8A92; --line:#ECECF0; --purple:#6C4CF1; --purple-soft:#EFEBFF; --orange:#F0973E;
+    --shadow:0 6px 24px rgba(23,23,26,.06); --r:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg-soft); color:var(--ink); font-family:'Poppins',sans-serif; font-size:15px; line-height:1.6;}
+  header.top{background:var(--bg); border-bottom:1px solid var(--line); padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  header.top h1{margin:0; font-size:1.15rem; font-weight:600;}
+  header.top h1 span{color:var(--purple);}
+  header.top .by{font-size:.8rem; color:var(--ink-faint);}
+  header.top .by a{color:var(--purple); text-decoration:none; font-weight:500;}
+  .layout{display:grid; grid-template-columns:400px 1fr; gap:24px; max-width:1400px; margin:24px auto; padding:0 24px;}
+  @media(max-width:1000px){ .layout{grid-template-columns:1fr;} }
+  .panel{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:22px;}
+  .panel h2{margin:0 0 4px; font-size:1rem; font-weight:600;}
+  .panel .hint{margin:0 0 16px; font-size:.8rem; color:var(--ink-faint);}
+  label{display:block; font-size:.76rem; font-weight:600; color:var(--ink-soft); margin:14px 0 5px; text-transform:uppercase; letter-spacing:.04em;}
+  input[type=text], textarea, select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--bg);
+  }
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--purple-soft); border-color:var(--purple);}
+  textarea{resize:vertical; min-height:64px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; font-family:inherit; font-weight:600; font-size:.86rem;
+    padding:11px 20px; border-radius:999px; cursor:pointer; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); transition:transform .15s, box-shadow .15s;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:var(--shadow);}
+  .btn.primary{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .btn.dark{background:#17171A; border-color:#17171A; color:#fff;}
+  .btn.sm{padding:7px 14px; font-size:.76rem;}
+  .btn-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .arch-note{margin-top:10px; padding:12px 14px; background:var(--purple-soft); border-radius:10px; font-size:.8rem; color:var(--ink-soft);}
+  .arch-note b{color:var(--purple);}
+
+  .board{display:flex; flex-direction:column; gap:18px;}
+  .board-head{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:22px 26px;}
+  .board-head h2{margin:0 0 2px; font-size:1.25rem; font-weight:700;}
+  .board-head .meta{font-size:.82rem; color:var(--ink-faint);}
+  .board-head .meta b{color:var(--purple); font-weight:600;}
+  .anchor{margin-top:12px; padding:12px 16px; border:1px dashed var(--line); border-radius:12px; font-size:.82rem; color:var(--ink-soft);}
+  .anchor b{color:var(--ink); font-weight:600;}
+  .frame{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:22px 26px;}
+  .frame-top{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:12px;}
+  .frame-top .n{
+    flex:none; width:34px; height:34px; border-radius:10px; background:var(--purple-soft); color:var(--purple);
+    display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:.9rem;
+  }
+  .frame-top .role{font-weight:600; font-size:1.02rem;}
+  .frame-top .dur{font-family:ui-monospace,monospace; font-size:.76rem; color:var(--ink-faint); margin-left:auto;}
+  .frame dl{margin:0; display:grid; grid-template-columns:110px 1fr; gap:6px 14px; font-size:.88rem;}
+  .frame dt{color:var(--ink-faint); font-size:.76rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; padding-top:2px;}
+  .frame dd{margin:0; color:var(--ink-soft);}
+  .frame dd.screen-text{color:var(--ink); font-weight:600;}
+  .genprompt{
+    margin-top:14px; background:#17171A; color:#D9DCE3; border-radius:12px; padding:14px 16px;
+    font-family:ui-monospace,monospace; font-size:.78rem; line-height:1.65; position:relative;
+  }
+  .genprompt .cp{position:absolute; top:10px; right:10px;}
+  .empty{padding:60px 30px; text-align:center; color:var(--ink-faint);}
+  footer{max-width:1400px; margin:10px auto 40px; padding:0 24px; font-size:.78rem; color:var(--ink-faint);}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:#17171A; color:#fff; font-size:.85rem; font-weight:500; padding:10px 22px; border-radius:999px;
+    transition:transform .25s ease; z-index:99;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Launch Video <span>Studio</span></h1>
+  <div class="by">Idea in → storyboard out — built by <a href="https://heykeerthi.vercel.app" target="_blank" rel="noopener">Keerthi Narendra</a></div>
+</header>
+
+<div class="layout">
+  <div>
+    <div class="panel">
+      <h2>The idea</h2>
+      <p class="hint">Rough thoughts are fine — the studio structures them into a shot-by-shot storyboard with generation prompts.</p>
+
+      <label for="vProduct">Product / thing being launched</label>
+      <input type="text" id="vProduct" placeholder="e.g. Bitcoin Earn" autocomplete="off">
+
+      <label for="vWhat">What it does, in a line or two</label>
+      <textarea id="vWhat" placeholder="e.g. Bitcoin yield on autopilot — deposit BTC, earn passively, no active management"></textarea>
+
+      <label for="vClaim">The one number or claim that makes it newsworthy</label>
+      <input type="text" id="vClaim" placeholder="e.g. First one-click BTC yield, audited, $2B secured" autocomplete="off">
+
+      <label for="vAudience">Audience</label>
+      <select id="vAudience">
+        <option value="retail crypto users">Retail crypto users</option>
+        <option value="institutions and funds">Institutions &amp; funds</option>
+        <option value="developers">Developers</option>
+        <option value="a general tech audience">General tech audience</option>
+      </select>
+
+      <label for="vArch">Video type</label>
+      <select id="vArch">
+        <option value="reveal">Reveal — new product unveiled at the end (15–30s)</option>
+        <option value="pulse">Pulse — one big number moment (8–15s)</option>
+        <option value="explainer">Explainer — mechanism people must get (30–60s)</option>
+        <option value="proof">Proof — partnership / logos do the work (10–20s)</option>
+        <option value="hype">Hype loop — community moment, quote-postable (6–10s)</option>
+      </select>
+      <div class="arch-note" id="archNote"></div>
+
+      <label for="vFeel">Visual feel &amp; brand (colors, mood, references)</label>
+      <textarea id="vFeel" placeholder="e.g. deep navy + gold, liquid metal, institutional but alive; think Apple event titles meets bullion"></textarea>
+
+      <label for="vThoughts">Your thoughts, must-haves, examples (freeform)</label>
+      <textarea id="vThoughts" placeholder="e.g. want a vault door opening; end on the wordmark; similar vibe to our last teaser"></textarea>
+
+      <label for="vChannel">Primary channel</label>
+      <select id="vChannel">
+        <option value="x">X / Twitter (16:9)</option>
+        <option value="linkedin">LinkedIn (1:1)</option>
+        <option value="reels">Reels / Stories (9:16)</option>
+        <option value="youtube">YouTube (16:9)</option>
+        <option value="event">Event screen (16:9)</option>
+      </select>
+
+      <div class="btn-row">
+        <button class="btn primary" id="build">Build storyboard</button>
+        <button class="btn dark" id="copyMaster" disabled>Copy master prompt</button>
+      </div>
+      <p class="hint" style="margin-top:14px;">The <b>master prompt</b> bundles the whole storyboard into one detailed brief — paste it into Claude to refine, or hand it to a video team or AI video tool.</p>
+    </div>
+  </div>
+
+  <div class="board" id="board">
+    <div class="empty panel">Fill in the idea and hit <b>Build storyboard</b> — frames appear here with a generation prompt for each.</div>
+  </div>
+</div>
+
+<footer>Single-file app, no data leaves your browser. Part of a set of AI marketing tools — <a href="https://github.com/heykeerthi" style="color:var(--purple); text-decoration:none;">github.com/heykeerthi</a></footer>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  var ARCHES = {
+    pulse:    { name:'Pulse', len:12, note:'Best when one number IS the story. Fast, rhythmic, number-led.',
+      frames:[
+        { role:'Cold open', pct:.15, visual:'Extreme close-up of an abstract element from the brand world in motion — no logo, immediate movement', text:'HOOK_SHORT', cam:'macro push-in, high speed' },
+        { role:'Build', pct:.2, visual:'Rapid montage of 2–3 abstract shots suggesting scale and momentum', text:'CONTEXT_FRAGMENT', cam:'quick cuts, whip transitions' },
+        { role:'The number', pct:.35, visual:'The claim/number materializes huge, center frame, kinetic type assembling from particles in accent color', text:'CLAIM', cam:'slow dolly out as number locks' },
+        { role:'Anchor', pct:.15, visual:'Number recontextualized next to the product name, background calms', text:'PRODUCT + one-liner', cam:'static, breathing room' },
+        { role:'End card', pct:.15, visual:'Wordmark, claim line, CTA on clean brand ground', text:'PRODUCT — CTA', cam:'static hold 2s+' } ] },
+    reveal:   { name:'Reveal', len:24, note:'Tension first, name last. The product is the punchline — do not show it early.',
+      frames:[
+        { role:'Tension', pct:.18, visual:'A familiar frustration or "before" state rendered abstractly in muted tones', text:'HOOK_PROBLEM', cam:'slow uneasy drift' },
+        { role:'Shift', pct:.16, visual:'Light/energy in accent color begins cutting through the muted scene', text:'SHIFT_LINE', cam:'light sweep, tempo rises' },
+        { role:'Mechanism tease', pct:.2, visual:'Abstract glimpses of the product working — surfaces, motion, data — never the full picture', text:'WHAT_FRAGMENT', cam:'macro details, rhythmic cuts' },
+        { role:'Claim', pct:.16, visual:'The one number/claim lands in kinetic type', text:'CLAIM', cam:'punch-in on type' },
+        { role:'Reveal', pct:.18, visual:'Full product name/wordmark assembles; scene resolves into clean brand world', text:'PRODUCT NAME', cam:'dolly out, reveal hold' },
+        { role:'End card', pct:.12, visual:'Wordmark, one-liner, CTA', text:'PRODUCT — CTA', cam:'static hold 2s+' } ] },
+    explainer:{ name:'Explainer', len:45, note:'Clarity beats spectacle. One idea per shot, generous pacing, diagram-like visuals.',
+      frames:[
+        { role:'Hook question', pct:.12, visual:'The audience\'s problem posed visually — simple, relatable metaphor in brand palette', text:'HOOK_QUESTION', cam:'static, clean' },
+        { role:'Stakes', pct:.14, visual:'Why it matters: scale/cost of the problem shown as growing visual mass', text:'STAKES_LINE', cam:'slow zoom out' },
+        { role:'Enter product', pct:.14, visual:'Product name appears as the answer, interface or abstract form entering frame', text:'PRODUCT + what it is', cam:'confident slide-in' },
+        { role:'How it works 1', pct:.16, visual:'Step one as a clean diagram-motion: inputs flowing in', text:'STEP 1', cam:'lateral track' },
+        { role:'How it works 2', pct:.16, visual:'Step two: the transformation/mechanism at the core', text:'STEP 2', cam:'orbit around mechanism' },
+        { role:'Proof', pct:.14, visual:'The claim/number plus trust marks (audits, partners) arranged calmly', text:'CLAIM', cam:'settle to static' },
+        { role:'End card', pct:.14, visual:'Wordmark, one-liner, CTA', text:'PRODUCT — CTA', cam:'static hold 2s+' } ] },
+    proof:    { name:'Proof', len:15, note:'Credibility transfer. Logos and names carry it — keep everything else minimal.',
+      frames:[
+        { role:'Setup', pct:.22, visual:'Both brand marks approaching each other across a clean field', text:'HOOK_PARTNERSHIP', cam:'symmetrical dolly' },
+        { role:'Lock-up', pct:.26, visual:'Marks lock together; accent energy at the joint', text:'X × Y', cam:'impact frame, slight shake' },
+        { role:'What it means', pct:.26, visual:'One concrete outcome of the partnership visualized', text:'CLAIM', cam:'clean lateral reveal' },
+        { role:'End card', pct:.26, visual:'Joint lock-up, one-liner, CTA', text:'PRODUCT — CTA', cam:'static hold 2s+' } ] },
+    hype:     { name:'Hype loop', len:8, note:'Made to be quote-posted. Must loop seamlessly — last frame feeds the first.',
+      frames:[
+        { role:'Impact', pct:.4, visual:'One iconic, high-energy visual of the moment — bold type slams in', text:'CLAIM_SHORT', cam:'speed ramp, impact zoom' },
+        { role:'Echo', pct:.3, visual:'The visual fractures/multiplies into a pattern of the brand mark', text:'PRODUCT NAME', cam:'kaleidoscopic pulse' },
+        { role:'Loop seam', pct:.3, visual:'Pattern collapses back toward the opening frame so the loop is seamless', text:'(none — let it breathe)', cam:'reverse pull to frame 1' } ] }
+  };
+
+  var RATIOS = { x:'16:9', linkedin:'1:1', reels:'9:16', youtube:'16:9', event:'16:9' };
+
+  function archNote(){
+    var a = ARCHES[$('vArch').value];
+    $('archNote').innerHTML = '<b>' + a.name + ' · ~' + a.len + 's · ' + a.frames.length + ' shots.</b> ' + a.note;
+  }
+  $('vArch').addEventListener('change', archNote);
+  archNote();
+
+  var lastMaster = '';
+
+  function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function build(){
+    var product = $('vProduct').value.trim() || 'the product';
+    var what = $('vWhat').value.trim() || 'a new product';
+    var claim = $('vClaim').value.trim() || 'a first of its kind';
+    var audience = $('vAudience').value;
+    var feel = $('vFeel').value.trim() || 'clean, modern, high-contrast brand world';
+    var thoughts = $('vThoughts').value.trim();
+    var channel = $('vChannel').value;
+    var ratio = RATIOS[channel];
+    var arch = ARCHES[$('vArch').value];
+
+    var anchor = 'STYLE ANCHOR (repeat at the end of every generation prompt): ' + feel +
+      '; cinematic lighting, consistent color grade across all shots, premium product-film finish, ' +
+      ratio + ' aspect ratio, no text rendered by the video model (text is added in edit).';
+
+    function screenText(code){
+      switch(code){
+        case 'HOOK_SHORT': return 'Something big just moved.';
+        case 'CONTEXT_FRAGMENT': return what.split(/[.—-]/)[0].trim();
+        case 'CLAIM': case 'CLAIM_SHORT': return claim;
+        case 'HOOK_PROBLEM': return 'The old way was never built for you.';
+        case 'SHIFT_LINE': return 'There’s a better way.';
+        case 'WHAT_FRAGMENT': return what.split(/[.—-]/)[0].trim();
+        case 'HOOK_QUESTION': return 'What if ' + what.split(/[.—-]/)[0].trim().toLowerCase() + '?';
+        case 'STAKES_LINE': return 'For ' + audience + ', this changes the math.';
+        case 'HOOK_PARTNERSHIP': return 'Two names you know. One announcement.';
+        case 'STEP 1': return 'Step 1 — connect';
+        case 'STEP 2': return 'Step 2 — it works for you';
+        case 'PRODUCT NAME': return product;
+        case 'PRODUCT + what it is': return product + ' — ' + what.split(/[.—-]/)[0].trim().toLowerCase();
+        case 'PRODUCT + one-liner': return product + ' — ' + what.split(/[.—-]/)[0].trim();
+        case 'PRODUCT — CTA': return product + ' — live now';
+        case 'X × Y': return product;
+        default: return code;
+      }
+    }
+
+    var total = arch.len;
+    var t = 0;
+    var frames = arch.frames.map(function(f, i){
+      var dur = Math.max(1, Math.round(total * f.pct));
+      var start = t; t += dur;
+      var text = screenText(f.text);
+      var gen = 'Shot ' + (i+1) + ' of ' + arch.frames.length + ' for a ' + product + ' launch film. ' +
+        f.visual + '. Camera: ' + f.cam + '. Duration: ' + dur + 's. ' +
+        (thoughts ? 'Creative direction from the marketer: ' + thoughts + '. ' : '') + anchor;
+      return { i:i+1, role:f.role, dur:dur, start:start, visual:f.visual, text:text, cam:f.cam, gen:gen };
+    });
+
+    // render board
+    var head = '<div class="board-head"><h2>' + esc(product) + ' — ' + arch.name + ' storyboard</h2>' +
+      '<div class="meta"><b>~' + total + 's</b> · ' + frames.length + ' shots · ' + ratio + ' · for ' + esc(audience) + '</div>' +
+      '<div class="anchor"><b>Style anchor</b> — ' + esc(anchor.replace('STYLE ANCHOR (repeat at the end of every generation prompt): ','')) + '</div></div>';
+
+    var cards = frames.map(function(f){
+      return '<div class="frame">' +
+        '<div class="frame-top"><span class="n">' + f.i + '</span><span class="role">' + esc(f.role) + '</span><span class="dur">' + f.start + 's → ' + (f.start + f.dur) + 's</span></div>' +
+        '<dl>' +
+        '<dt>Visual</dt><dd>' + esc(f.visual) + '</dd>' +
+        '<dt>On screen</dt><dd class="screen-text">&ldquo;' + esc(f.text) + '&rdquo;</dd>' +
+        '<dt>Camera</dt><dd>' + esc(f.cam) + '</dd>' +
+        '</dl>' +
+        '<div class="genprompt"><button class="btn sm cp" data-copy="' + f.i + '">copy</button>' + esc(f.gen) + '</div>' +
+        '</div>';
+    }).join('');
+
+    $('board').innerHTML = head + cards;
+
+    lastMaster = [
+      'LAUNCH VIDEO BRIEF — ' + product,
+      '',
+      'You are a launch-video director working with a marketer. Refine and execute this storyboard. Keep the structure; improve any weak wording; flag anything that will not read in the first 1.5 seconds.',
+      '',
+      'Product: ' + product,
+      'What it does: ' + what,
+      'Newsworthy claim: ' + claim,
+      'Audience: ' + audience,
+      'Channel & ratio: ' + channel + ' (' + ratio + ')',
+      'Archetype: ' + arch.name + ' (~' + total + 's, ' + frames.length + ' shots)',
+      (thoughts ? 'Marketer’s creative direction: ' + thoughts : ''),
+      '',
+      anchor,
+      '',
+      'STORYBOARD:',
+      frames.map(function(f){
+        return 'Shot ' + f.i + ' — ' + f.role + ' (' + f.start + 's–' + (f.start+f.dur) + 's)\n' +
+          '  Visual: ' + f.visual + '\n' +
+          '  Text on screen: "' + f.text + '"\n' +
+          '  Camera: ' + f.cam + '\n' +
+          '  Generation prompt: ' + f.gen;
+      }).join('\n\n'),
+      '',
+      'RULES: hook inside 1.5s; the video must work with sound off; one idea per shot; end card holds 2s+; the claim appears mid-video AND on the end card. Deliver: refined storyboard, per-shot generation prompts, and platform captions for X and LinkedIn.'
+    ].filter(Boolean).join('\n');
+
+    $('copyMaster').disabled = false;
+
+    document.querySelectorAll('.cp').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var f = frames[parseInt(this.getAttribute('data-copy'),10)-1];
+        copy(f.gen, 'Shot ' + f.i + ' prompt copied');
+      });
+    });
+  }
+
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+  function copy(text, msg){
+    navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ toast('Copy failed'); });
+  }
+
+  $('build').addEventListener('click', build);
+  $('copyMaster').addEventListener('click', function(){ if(lastMaster) copy(lastMaster, 'Master prompt copied — paste into Claude'); });
+})();
+</script>
+</body>
+</html>
