@@ -986,17 +986,29 @@
       for(var i = N - 1; i >= 0; i--){
         var t = i / (N - 1);
         // sine wobble perpendicular-ish to the tail for the wavy feel
-        var wob = Math.sin(tick - i * 0.55) * (2 + 7 * t);
+        var wob = Math.sin(tick - i * 0.55) * (1 + 4 * t);
         var x = pts[i].x + wob;
-        var y = pts[i].y + Math.cos(tick - i * 0.55) * (1 + 4 * t);
-        var radius = 11 * (1 - t) + 2;
-        var alpha = (dark ? 0.16 : 0.12) * (1 - t) + 0.015;
-        var g2 = ctx.createRadialGradient(x, y, 0, x, y, radius * 2.6);
-        g2.addColorStop(0, col(t, alpha));
-        g2.addColorStop(1, col(t, 0));
-        ctx.fillStyle = g2;
+        var y = pts[i].y + Math.cos(tick - i * 0.55) * (0.5 + 2.5 * t);
+        var fade = 1 - t;
+        // wide soft halo — the glow
+        var haloR = 26 * fade + 6;
+        var haloA = (dark ? 0.10 : 0.07) * fade;
+        var halo = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+        halo.addColorStop(0, col(t, haloA));
+        halo.addColorStop(1, col(t, 0));
+        ctx.fillStyle = halo;
         ctx.beginPath();
-        ctx.arc(x, y, radius * 2.6, 0, Math.PI * 2);
+        ctx.arc(x, y, haloR, 0, Math.PI * 2);
+        ctx.fill();
+        // thin bright core — the sleek line
+        var coreR = 2.2 * fade + 0.5;
+        var coreA = (dark ? 0.55 : 0.40) * fade + 0.03;
+        var core = ctx.createRadialGradient(x, y, 0, x, y, coreR * 2);
+        core.addColorStop(0, col(t, coreA));
+        core.addColorStop(1, col(t, 0));
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(x, y, coreR * 2, 0, Math.PI * 2);
         ctx.fill();
       }
       requestAnimationFrame(frame);
