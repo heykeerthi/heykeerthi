@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brand Kit Studio — build a brand system for any brand</title>
+<meta name="description" content="Define a brand once — colors, type, voice, rules — and generate a complete brand studio: live preview, design tokens, and a shareable AI prompt.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF; --bg-soft:#F7F7F9; --card:#FCFCFD; --ink:#1D1D1F; --ink-soft:#55555C;
+    --ink-faint:#8A8A92; --line:#ECECF0; --purple:#6C4CF1; --purple-soft:#EFEBFF; --orange:#F0973E;
+    --shadow:0 6px 24px rgba(23,23,26,.06); --r:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg-soft); color:var(--ink); font-family:'Poppins',sans-serif; font-size:15px; line-height:1.6;}
+  header.top{background:var(--bg); border-bottom:1px solid var(--line); padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  header.top h1{margin:0; font-size:1.15rem; font-weight:600;}
+  header.top h1 span{color:var(--purple);}
+  header.top .by{font-size:.8rem; color:var(--ink-faint);}
+  header.top .by a{color:var(--purple); text-decoration:none; font-weight:500;}
+  .layout{display:grid; grid-template-columns:380px 1fr; gap:24px; max-width:1400px; margin:24px auto; padding:0 24px;}
+  @media(max-width:980px){ .layout{grid-template-columns:1fr;} }
+
+  /* form */
+  .panel{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:22px;}
+  .panel h2{margin:0 0 4px; font-size:1rem; font-weight:600;}
+  .panel .hint{margin:0 0 18px; font-size:.8rem; color:var(--ink-faint);}
+  label{display:block; font-size:.76rem; font-weight:600; color:var(--ink-soft); margin:14px 0 5px; text-transform:uppercase; letter-spacing:.04em;}
+  input[type=text], textarea, select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--bg);
+  }
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--purple-soft); border-color:var(--purple);}
+  textarea{resize:vertical; min-height:60px;}
+  .color-row{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .color-row input[type=color]{width:42px; height:36px; border:1px solid var(--line); border-radius:8px; padding:2px; background:var(--bg); cursor:pointer;}
+  .color-row input[type=text]{flex:1;}
+  .color-row .role{flex:none; width:86px; font-size:.74rem; color:var(--ink-faint);}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; font-family:inherit; font-weight:600; font-size:.86rem;
+    padding:11px 20px; border-radius:999px; cursor:pointer; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); transition:transform .15s, box-shadow .15s;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:var(--shadow);}
+  .btn.primary{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .btn.dark{background:#17171A; border-color:#17171A; color:#fff;}
+  .btn-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:#17171A; color:#fff; font-size:.85rem; font-weight:500; padding:10px 22px; border-radius:999px;
+    transition:transform .25s ease; z-index:99;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* preview studio */
+  .studio{background:var(--bg); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;}
+  .studio-head{padding:44px 40px 34px; border-bottom:1px solid var(--line);}
+  .studio-head .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;}
+  .studio-head h2{margin:0; font-size:2.6rem; font-weight:700; letter-spacing:-.02em; line-height:1.1;}
+  .studio-head .tag{margin-top:8px; color:var(--ink-soft); font-size:1.02rem;}
+  .sec{padding:30px 40px; border-bottom:1px solid var(--line);}
+  .sec:last-child{border-bottom:none;}
+  .sec h3{margin:0 0 16px; font-size:.78rem; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint);}
+  .swatches{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px;}
+  .swatch{border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .swatch .chip{height:74px;}
+  .swatch .meta{padding:9px 12px; background:var(--bg);}
+  .swatch .meta .hex{font-family:ui-monospace,monospace; font-size:.78rem;}
+  .swatch .meta .role{font-size:.7rem; color:var(--ink-faint); text-transform:capitalize;}
+  .spec .big{font-size:2.4rem; font-weight:700; line-height:1.15; margin:0 0 8px;}
+  .spec .mid{font-size:1.2rem; font-weight:600; margin:0 0 8px;}
+  .spec .body{max-width:60ch; margin:0 0 4px; color:var(--ink-soft);}
+  .spec .note{font-size:.75rem; color:var(--ink-faint); font-family:ui-monospace,monospace;}
+  .ui-row{display:flex; flex-wrap:wrap; gap:14px; align-items:center;}
+  .chip-btn{padding:11px 24px; border-radius:999px; font-weight:600; font-size:.9rem; border:none; cursor:default;}
+  .chip-btn.ghost{background:transparent; border:1.5px solid;}
+  .mini-card{border:1px solid var(--line); border-radius:14px; padding:18px 20px; max-width:290px; box-shadow:var(--shadow);}
+  .mini-card .t{font-weight:600; margin-bottom:4px;}
+  .mini-card .d{font-size:.83rem; color:var(--ink-soft);}
+  .voice-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:700px){ .voice-grid{grid-template-columns:1fr;} }
+  .voice-box{border:1px solid var(--line); border-radius:12px; padding:16px 18px;}
+  .voice-box .vt{font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;}
+  .voice-box ul{margin:0; padding-left:18px; font-size:.86rem; color:var(--ink-soft);}
+  .social-mock{border-radius:14px; padding:34px 34px; max-width:520px; box-shadow:var(--shadow);}
+  .social-mock .sm-eyebrow{font-size:.7rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; opacity:.7; margin-bottom:8px;}
+  .social-mock .sm-head{font-size:1.5rem; font-weight:700; line-height:1.25; margin-bottom:10px;}
+  .social-mock .sm-cta{display:inline-block; margin-top:6px; padding:8px 18px; border-radius:999px; font-size:.8rem; font-weight:600;}
+  footer{max-width:1400px; margin:10px auto 40px; padding:0 24px; font-size:.78rem; color:var(--ink-faint);}
+  @keyframes slide{ 0%{transform:translateX(-100%);} 60%{transform:translateX(180%);} 100%{transform:translateX(180%);} }
+  @media(max-width:860px){ #pvArtGrid{grid-template-columns:1fr !important;} }
+  .filein{width:100%; font-family:inherit; font-size:.8rem; color:var(--ink-soft); padding:9px 10px; border:1px dashed var(--line); border-radius:10px; background:var(--bg);}
+  .filein::file-selector-button{
+    font-family:inherit; font-weight:600; font-size:.76rem; margin-right:10px; cursor:pointer;
+    padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:var(--bg-soft); color:var(--ink);
+  }
+  .asset-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px;}
+  .thumb{position:relative; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--bg-soft);}
+  .thumb img{display:block; width:100%; height:100px; object-fit:cover;}
+  .thumb .nm{padding:6px 10px; font-size:.68rem; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .thumb .rm{
+    position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(23,23,26,.75); color:#fff; font-size:.75rem; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .pv-logo{max-height:46px; max-width:200px; margin-bottom:16px; display:block;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Brand Kit <span>Studio</span></h1>
+  <div class="by">A system for creating brand systems — built by <a href="https://heykeerthi.vercel.app" target="_blank" rel="noopener">Keerthi Narendra</a></div>
+</header>
+
+<div class="layout">
+  <div>
+    <div class="panel">
+      <h2>Define the brand</h2>
+      <p class="hint">Fill this in for any brand — the studio on the right rebuilds live.</p>
+
+      <label for="bName">Brand name</label>
+      <input type="text" id="bName" value="Acme Protocol" autocomplete="off">
+
+      <label for="bTag">Tagline</label>
+      <input type="text" id="bTag" value="Infrastructure that just works" autocomplete="off">
+
+      <label>Palette</label>
+      <div class="color-row"><span class="role">Ground</span><input type="color" id="cGround" value="#0E1116"><input type="text" id="cGroundHex" value="#0E1116"></div>
+      <div class="color-row"><span class="role">Surface</span><input type="color" id="cSurface" value="#161B23"><input type="text" id="cSurfaceHex" value="#161B23"></div>
+      <div class="color-row"><span class="role">Ink</span><input type="color" id="cInk" value="#F2F4F8"><input type="text" id="cInkHex" value="#F2F4F8"></div>
+      <div class="color-row"><span class="role">Accent</span><input type="color" id="cAccent" value="#4C8DFF"><input type="text" id="cAccentHex" value="#4C8DFF"></div>
+      <div class="color-row"><span class="role">Accent 2</span><input type="color" id="cAccent2" value="#F0973E"><input type="text" id="cAccent2Hex" value="#F0973E"></div>
+
+      <label for="fDisplay">Display font (Google Fonts name)</label>
+      <input type="text" id="fDisplay" value="Space Grotesk" autocomplete="off">
+
+      <label for="fBody">Body font (Google Fonts name)</label>
+      <input type="text" id="fBody" value="Inter" autocomplete="off">
+
+      <label for="bVoice">Voice — 3–5 adjectives</label>
+      <input type="text" id="bVoice" value="confident, precise, warm, never hypey" autocomplete="off">
+
+      <label for="bDo">Voice — do (one per line)</label>
+      <textarea id="bDo">Lead with the user's outcome
+Use concrete numbers
+Short sentences, active voice</textarea>
+
+      <label for="bNever">Never rules (one per line)</label>
+      <textarea id="bNever">No exclamation marks in headlines
+Never use emoji in product comms
+Accent color never used for body text</textarea>
+
+      <label for="bMotifs">Motifs &amp; graphic devices (one per line)</label>
+      <textarea id="bMotifs">orbital rings
+fine grid lines
+soft gradient mesh in accent colors</textarea>
+
+      <label for="bIconStyle">Iconography</label>
+      <select id="bIconStyle">
+        <option value="line">Line — outlined, stroke only</option>
+        <option value="filled">Filled — solid shapes</option>
+        <option value="duotone">Duotone — accent + soft tint</option>
+      </select>
+      <input type="text" id="bIconNotes" value="2px stroke, rounded joins, 24px grid" autocomplete="off" style="margin-top:8px;" placeholder="stroke, corners, grid…">
+
+      <label for="bIllus">Illustration style</label>
+      <textarea id="bIllus">Minimal geometric line illustrations with a single accent fill. No clip-art, no 3D mascots.</textarea>
+
+      <label for="bPhoto">Photography direction</label>
+      <textarea id="bPhoto">Natural light, real people in real settings, warm consistent grade. Never sterile stock photography.</textarea>
+
+      <label for="bMotion">Motion, animation &amp; GIFs</label>
+      <textarea id="bMotion">Calm and precise: 200–300ms ease-out, elements slide and fade. Signature move: accent underline draws in left to right. GIFs sparingly — subtle seamless loops only.</textarea>
+
+      <label for="upLogo">Logo file (SVG or PNG)</label>
+      <input type="file" id="upLogo" accept="image/*,.svg" class="filein">
+
+      <label for="upImagery">Imagery — illustrations &amp; photography (multiple)</label>
+      <input type="file" id="upImagery" accept="image/*" multiple class="filein">
+
+      <label for="upMotion">Motion — GIFs &amp; animated loops (multiple)</label>
+      <input type="file" id="upMotion" accept="image/gif,image/webp,image/apng" multiple class="filein">
+      <p class="hint" style="margin:8px 0 0;">Files never leave your browser — they're embedded into the studio preview and the downloaded HTML. Keep total under ~10&nbsp;MB so the file stays portable.</p>
+
+      <label for="bAssets">Asset library links — full packs hosted elsewhere (one per line)</label>
+      <textarea id="bAssets" placeholder="https://drive.google.com/…  (logo pack)
+https://fonts.google.com/…  (type)
+https://figma.com/…  (illustration library)"></textarea>
+
+      <div class="btn-row">
+        <button class="btn primary" id="copyPrompt">Copy studio prompt</button>
+        <button class="btn dark" id="copyTokens">Copy tokens JSON</button>
+        <button class="btn" id="downloadStudio">Download studio HTML</button>
+      </div>
+      <p class="hint" style="margin-top:14px;">The <b>studio prompt</b> is the shareable part: paste it into Claude (or any capable AI) and it will build a complete standalone brand studio like this one — for the brand defined above.</p>
+    </div>
+  </div>
+
+  <div class="studio" id="studio">
+    <div class="studio-head" id="pvHead">
+      <img id="pvLogo" class="pv-logo" alt="logo" style="display:none;">
+      <div class="eyebrow">Brand System</div>
+      <h2 id="pvName">Acme Protocol</h2>
+      <div class="tag" id="pvTag">Infrastructure that just works</div>
+    </div>
+
+    <div class="sec">
+      <h3>Palette</h3>
+      <div class="swatches" id="pvSwatches"></div>
+    </div>
+
+    <div class="sec spec" id="pvType">
+      <h3>Typography</h3>
+      <p class="big" id="pvBig">The quick brown fox jumps over the lazy dog</p>
+      <p class="mid" id="pvMid">Headlines carry the message. Body carries the proof.</p>
+      <p class="body" id="pvBody">Body text stays calm and readable at around sixty-five characters per line, giving dense information room to breathe while the display face does the talking above it.</p>
+      <p class="note" id="pvTypeNote">Display: Space Grotesk · Body: Inter</p>
+    </div>
+
+    <div class="sec">
+      <h3>Components</h3>
+      <div class="ui-row" id="pvUi">
+        <button class="chip-btn" id="pvBtn1">Primary action</button>
+        <button class="chip-btn ghost" id="pvBtn2">Secondary</button>
+        <div class="mini-card" id="pvCard">
+          <div class="t" id="pvCardT">Card title</div>
+          <div class="d">Supporting copy sits in the soft ink tone, one idea per card.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Voice</h3>
+      <div class="voice-grid">
+        <div class="voice-box"><div class="vt" id="pvVoiceAdj" style="color:var(--purple);">confident · precise · warm</div><ul id="pvDo"></ul></div>
+        <div class="voice-box"><div class="vt" style="color:#C43D3D;">Never</div><ul id="pvNever"></ul></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Iconography &amp; Motifs</h3>
+      <div class="ui-row" style="align-items:flex-start; gap:28px;">
+        <div>
+          <svg id="pvIcons" width="168" height="48" viewBox="0 0 168 48" aria-label="icon samples"></svg>
+          <div class="note" id="pvIconNote" style="font-size:.75rem; color:var(--ink-faint); font-family:ui-monospace,monospace;"></div>
+        </div>
+        <div id="pvMotifs" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Art Direction</h3>
+      <div class="voice-grid" style="grid-template-columns:1fr 1fr 1fr;" id="pvArtGrid">
+        <div class="voice-box"><div class="vt" style="color:var(--ink-faint);">Illustration</div><div style="font-size:.86rem; color:var(--ink-soft);" id="pvIllus"></div></div>
+        <div class="voice-box"><div class="vt" style="color:var(--ink-faint);">Photography</div><div style="font-size:.86rem; color:var(--ink-soft);" id="pvPhoto"></div></div>
+        <div class="voice-box"><div class="vt" style="color:var(--ink-faint);">Motion</div><div style="font-size:.86rem; color:var(--ink-soft);" id="pvMotion"></div>
+          <div style="margin-top:12px; height:4px; border-radius:2px; background:var(--line); overflow:hidden;"><div id="pvMotionDemo" style="height:100%; width:38%; border-radius:2px;"></div></div>
+        </div>
+      </div>
+      <div class="note" id="pvAssets" style="margin-top:14px; font-size:.78rem; color:var(--ink-faint);"></div>
+    </div>
+
+    <div class="sec" id="pvImagerySec" style="display:none;">
+      <h3>Imagery</h3>
+      <div class="asset-grid" id="pvImagery"></div>
+    </div>
+
+    <div class="sec" id="pvMotionSec" style="display:none;">
+      <h3>Motion Assets</h3>
+      <div class="asset-grid" id="pvMotionAssets"></div>
+    </div>
+
+    <div class="sec">
+      <h3>In the wild — social card</h3>
+      <div class="social-mock" id="pvSocial">
+        <div class="sm-eyebrow" id="pvSmEyebrow">Announcement</div>
+        <div class="sm-head" id="pvSmHead">Acme Protocol ships a faster way forward</div>
+        <div class="sm-cta" id="pvSmCta">Read more</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Single-file app, no data leaves your browser. Part of a set of AI marketing tools — <a href="https://github.com/heykeerthi" style="color:var(--purple); text-decoration:none;">github.com/heykeerthi</a></footer>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var loadedFonts = {};
+  var uploads = { logo: null, imagery: [], motion: [] };
+
+  function readFiles(fileList, cb){
+    Array.prototype.forEach.call(fileList, function(f){
+      var r = new FileReader();
+      r.onload = function(){ cb({ name: f.name, dataUrl: r.result }); };
+      r.readAsDataURL(f);
+    });
+  }
+  $('upLogo').addEventListener('change', function(){
+    if(!this.files.length){ return; }
+    readFiles([this.files[0]], function(a){ uploads.logo = a; render(); });
+  });
+  $('upImagery').addEventListener('change', function(){
+    readFiles(this.files, function(a){ uploads.imagery.push(a); render(); });
+    this.value = '';
+  });
+  $('upMotion').addEventListener('change', function(){
+    readFiles(this.files, function(a){ uploads.motion.push(a); render(); });
+    this.value = '';
+  });
+  window.removeAsset = function(kind, idx){
+    if(kind === 'logo'){ uploads.logo = null; $('upLogo').value = ''; }
+    else { uploads[kind].splice(idx, 1); }
+    render();
+  };
+
+  function loadFont(name){
+    var key = name.trim();
+    if(!key || loadedFonts[key]) return;
+    loadedFonts[key] = true;
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(key).replace(/%20/g,'+') + ':wght@400;500;600;700&display=swap';
+    document.head.appendChild(l);
+  }
+
+  function state(){
+    return {
+      brand: $('bName').value.trim() || 'Untitled Brand',
+      tagline: $('bTag').value.trim(),
+      color: {
+        ground: $('cGroundHex').value.trim(),
+        surface: $('cSurfaceHex').value.trim(),
+        ink: $('cInkHex').value.trim(),
+        accent: $('cAccentHex').value.trim(),
+        accent_2: $('cAccent2Hex').value.trim()
+      },
+      type: { display: $('fDisplay').value.trim(), body: $('fBody').value.trim() },
+      voice: {
+        adjectives: $('bVoice').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+        do_rules: $('bDo').value.split('\n').map(function(s){return s.trim();}).filter(Boolean),
+        never: $('bNever').value.split('\n').map(function(s){return s.trim();}).filter(Boolean)
+      },
+      motifs: $('bMotifs').value.split('\n').map(function(s){return s.trim();}).filter(Boolean),
+      iconography: { style: $('bIconStyle').value, notes: $('bIconNotes').value.trim() },
+      illustration: $('bIllus').value.trim(),
+      photography: $('bPhoto').value.trim(),
+      motion: $('bMotion').value.trim(),
+      asset_links: $('bAssets').value.split('\n').map(function(s){return s.trim();}).filter(Boolean)
+    };
+  }
+
+  function contrastInk(hex){
+    var h = hex.replace('#','');
+    if(h.length === 3) h = h.split('').map(function(c){return c+c;}).join('');
+    var r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+    return (0.299*r + 0.587*g + 0.114*b) > 150 ? '#17171A' : '#FFFFFF';
+  }
+
+  function render(){
+    var s = state();
+    loadFont(s.type.display); loadFont(s.type.body);
+    var disp = "'" + s.type.display + "', sans-serif";
+    var body = "'" + s.type.body + "', sans-serif";
+
+    $('pvName').textContent = s.brand;
+    $('pvTag').textContent = s.tagline;
+    $('pvName').style.fontFamily = disp;
+    $('pvHead').style.background = s.color.ground;
+    $('pvHead').style.color = s.color.ink;
+    $('pvHead').querySelector('.eyebrow').style.color = s.color.accent;
+    $('pvTag').style.color = s.color.ink; $('pvTag').style.opacity = .75;
+
+    var roles = ['ground','surface','ink','accent','accent_2'];
+    $('pvSwatches').innerHTML = roles.map(function(r){
+      var hex = s.color[r];
+      return '<div class="swatch"><div class="chip" style="background:'+hex+'"></div><div class="meta"><div class="hex">'+hex.toUpperCase()+'</div><div class="role">'+r.replace('_',' ')+'</div></div></div>';
+    }).join('');
+
+    $('pvBig').style.fontFamily = disp;
+    $('pvMid').style.fontFamily = disp;
+    $('pvBody').style.fontFamily = body;
+    $('pvTypeNote').textContent = 'Display: ' + s.type.display + ' · Body: ' + s.type.body;
+
+    $('pvBtn1').style.background = s.color.accent;
+    $('pvBtn1').style.color = contrastInk(s.color.accent);
+    $('pvBtn1').style.fontFamily = body;
+    $('pvBtn2').style.color = s.color.accent;
+    $('pvBtn2').style.borderColor = s.color.accent;
+    $('pvBtn2').style.background = 'transparent';
+    $('pvBtn2').style.fontFamily = body;
+    $('pvCardT').style.fontFamily = disp;
+
+    $('pvVoiceAdj').textContent = s.voice.adjectives.join(' · ') || '—';
+    $('pvVoiceAdj').style.color = s.color.accent;
+    $('pvDo').innerHTML = s.voice.do_rules.map(function(r){return '<li>'+r+'</li>';}).join('') || '<li>—</li>';
+    $('pvNever').innerHTML = s.voice.never.map(function(r){return '<li>'+r+'</li>';}).join('') || '<li>—</li>';
+
+    // icon samples in the chosen style
+    var iconDefs = [
+      'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z',                                  // circle
+      'M6 6h12v12H6z',                                                          // square
+      'M5 12h11m0 0-4-4m4 4-4 4'                                                // arrow
+    ];
+    var st = s.iconography.style;
+    $('pvIcons').innerHTML = iconDefs.map(function(d, i){
+      var x = i * 60;
+      if(st === 'filled'){
+        return '<g transform="translate(' + x + ',12)"><path d="' + d + '" fill="' + s.color.accent + '" stroke="' + s.color.accent + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>';
+      }
+      if(st === 'duotone'){
+        return '<g transform="translate(' + x + ',12)"><path d="' + d + '" fill="' + s.color.accent + '" opacity="0.18"/><path d="' + d + '" fill="none" stroke="' + s.color.accent + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>';
+      }
+      return '<g transform="translate(' + x + ',12)"><path d="' + d + '" fill="none" stroke="' + s.color.accent + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>';
+    }).join('');
+    $('pvIconNote').textContent = st + ' · ' + (s.iconography.notes || '');
+
+    $('pvMotifs').innerHTML = s.motifs.map(function(m){
+      return '<span style="padding:6px 14px; border:1px solid ' + s.color.accent + '33; color:' + s.color.accent + '; border-radius:999px; font-size:.78rem; font-weight:500;">' + m + '</span>';
+    }).join('') || '<span style="color:var(--ink-faint); font-size:.8rem;">—</span>';
+
+    $('pvIllus').textContent = s.illustration || '—';
+    $('pvPhoto').textContent = s.photography || '—';
+    $('pvMotion').textContent = s.motion || '—';
+    var demo = $('pvMotionDemo');
+    demo.style.background = 'linear-gradient(90deg,' + s.color.accent + ',' + s.color.accent_2 + ')';
+    demo.style.animation = 'none'; void demo.offsetWidth;
+    demo.style.animation = 'slide 2.4s ease-out infinite';
+    $('pvAssets').innerHTML = s.asset_links.length
+      ? '<b style="color:var(--ink-soft);">Asset library:</b> ' + s.asset_links.map(function(u){ return '<a href="' + u.split(/\s/)[0] + '" target="_blank" rel="noopener" style="color:' + s.color.accent + '; text-decoration:none;">' + u + '</a>'; }).join(' · ')
+      : '';
+
+    // uploaded assets
+    var lg = $('pvLogo');
+    if(uploads.logo){ lg.src = uploads.logo.dataUrl; lg.style.display = 'block'; }
+    else { lg.style.display = 'none'; lg.removeAttribute('src'); }
+
+    function grid(list, kind){
+      return list.map(function(a, i){
+        return '<div class="thumb"><button class="rm" onclick="removeAsset(\'' + kind + '\',' + i + ')" title="remove">×</button>' +
+          '<img src="' + a.dataUrl + '" alt=""><div class="nm">' + a.name + '</div></div>';
+      }).join('');
+    }
+    $('pvImagerySec').style.display = uploads.imagery.length ? '' : 'none';
+    $('pvImagery').innerHTML = grid(uploads.imagery, 'imagery');
+    $('pvMotionSec').style.display = uploads.motion.length ? '' : 'none';
+    $('pvMotionAssets').innerHTML = grid(uploads.motion, 'motion');
+
+    var sm = $('pvSocial');
+    sm.style.background = s.color.ground;
+    sm.style.color = s.color.ink;
+    $('pvSmEyebrow').style.color = s.color.accent_2;
+    $('pvSmHead').textContent = s.brand + ' ships a faster way forward';
+    $('pvSmHead').style.fontFamily = disp;
+    $('pvSmCta').style.background = s.color.accent;
+    $('pvSmCta').style.color = contrastInk(s.color.accent);
+  }
+
+  // sync color picker <-> hex field
+  [['cGround','cGroundHex'],['cSurface','cSurfaceHex'],['cInk','cInkHex'],['cAccent','cAccentHex'],['cAccent2','cAccent2Hex']].forEach(function(pair){
+    $(pair[0]).addEventListener('input', function(){ $(pair[1]).value = this.value.toUpperCase(); render(); });
+    $(pair[1]).addEventListener('input', function(){ if(/^#[0-9a-fA-F]{6}$/.test(this.value)) { $(pair[0]).value = this.value; render(); } });
+  });
+  ['bName','bTag','fDisplay','fBody','bVoice','bDo','bNever','bMotifs','bIconNotes','bIllus','bPhoto','bMotion','bAssets'].forEach(function(id){
+    $(id).addEventListener('input', render);
+  });
+  $('bIconStyle').addEventListener('change', render);
+
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+  function copy(text, msg){
+    navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ toast('Copy failed — select manually'); });
+  }
+
+  function tokensJSON(){
+    var s = state();
+    s.uploaded_assets = {
+      logo: uploads.logo ? uploads.logo.name : null,
+      imagery: uploads.imagery.map(function(a){ return a.name; }),
+      motion: uploads.motion.map(function(a){ return a.name; })
+    };
+    return JSON.stringify(s, null, 2);
+  }
+
+  function studioPrompt(){
+    var s = state();
+    return [
+'You are a senior brand designer. Build a complete, standalone BRAND STUDIO web page (a single self-contained HTML file, no external dependencies except Google Fonts) for the brand defined by the design tokens below.',
+'',
+'The studio page must contain, in order:',
+'1. A hero header in the brand ground color: brand name set in the display font, tagline, and an eyebrow label reading "Brand System".',
+'2. PALETTE — every color as a swatch card with hex value and role name, plus one sentence on when to use each.',
+'3. TYPOGRAPHY — a live specimen: display font at headline sizes, body font at paragraph size, with a note naming both fonts and their weights.',
+'4. COMPONENTS — a primary button, secondary (outline) button, and a content card, all styled strictly from the tokens.',
+'5. VOICE — the adjectives, the do-rules, and the never-rules, presented as two columns (Do / Never).',
+'6. ICONOGRAPHY & MOTIFS — render 4–6 sample icons as inline SVG in the specified icon style (respect stroke/fill/duotone and the notes), and show each graphic motif as a decorative element used tastefully somewhere on the page.',
+'7. ART DIRECTION — three cards: Illustration style, Photography direction, and Motion principles. For motion, include one small live CSS animation demonstrating the described easing/timing. Note where GIFs are and are not appropriate per the tokens.',
+'8. ASSET LIBRARY — if asset links are provided, list them as a linked index (logos, fonts, illustration sets, photo sets) so anyone landing on the studio can pull real files.',
+'9. IN THE WILD — a mock social announcement card using ground color, accent CTA, display font, and at least one motif.',
+'10. USAGE RULES — derive 6 sensible rules from the tokens (contrast, accent discipline, icon consistency, photography dos/donts, motion restraint, what never to do).',
+'',
+'Hard requirements: every color on the page must come from the tokens (derive shades only by lightening/darkening a token). Respect every "never" rule. Text contrast must meet 4.5:1. The page must be responsive and elegant — generous whitespace, consistent border radius, one shadow style.',
+'',
+'UPLOADED ASSETS: the tokens list uploaded asset filenames (logo, imagery, motion). If you were given these files alongside this prompt, embed and use them in the matching sections. If not, render clearly-labeled placeholder slots with each filename so the owner can drop the real files in — never substitute stock or invented imagery.',
+'',
+'DESIGN TOKENS:',
+tokensJSON()
+    ].join('\n');
+  }
+
+  $('copyTokens').addEventListener('click', function(){ copy(tokensJSON(), 'Tokens copied'); });
+  $('copyPrompt').addEventListener('click', function(){ copy(studioPrompt(), 'Studio prompt copied — paste into Claude'); });
+
+  $('downloadStudio').addEventListener('click', function(){
+    var s = state();
+    var clone = document.getElementById('studio').cloneNode(true);
+    clone.querySelectorAll('.rm').forEach(function(b){ b.remove(); });
+    var html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' + s.brand + ' — Brand Studio</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=' + encodeURIComponent(s.type.display).replace(/%20/g,'+') + ':wght@400;600;700&family=' + encodeURIComponent(s.type.body).replace(/%20/g,'+') + ':wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+      '<style>' + document.querySelector('style').textContent + ' body{background:#F7F7F9; padding:24px;} .studio{max-width:960px; margin:0 auto;}</style></head><body>' +
+      clone.outerHTML + '</body></html>';
+    var blob = new Blob([html], {type:'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = s.brand.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-brand-studio.html';
+    a.click();
+    toast('Studio downloaded');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
