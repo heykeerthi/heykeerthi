@@ -826,6 +826,8 @@
   </div>
 </section>
 
+<canvas id="trail" aria-hidden="true" style="position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:55;"></canvas>
+
 <button class="float-cv" id="floatCv" type="button">📄&nbsp;Download CV</button>
 
 <footer>Keerthi Narendra — keerthinarendra2@gmail.com</footer>
@@ -926,6 +928,81 @@
     if(window.scrollY > 500){ floatCv.classList.add('show'); }
     else { floatCv.classList.remove('show'); }
   }, { passive:true });
+
+  // Cursor trail — wavy glowing ribbon in brand colors.
+  (function(){
+    var canvas = document.getElementById('trail');
+    var finePointer = window.matchMedia('(pointer: fine)').matches;
+    if(reduceMotion || !finePointer || !canvas.getContext){ canvas.remove(); return; }
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function size(){
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    size();
+    window.addEventListener('resize', size);
+
+    var mouse = { x: -100, y: -100 };
+    var seen = false;
+    window.addEventListener('mousemove', function(e){
+      mouse.x = e.clientX; mouse.y = e.clientY;
+      if(!seen){
+        seen = true;
+        for(var i = 0; i < pts.length; i++){ pts[i].x = mouse.x; pts[i].y = mouse.y; }
+      }
+    }, { passive:true });
+
+    var N = 22;
+    var pts = [];
+    for(var i = 0; i < N; i++) pts.push({ x:-100, y:-100 });
+
+    function isDark(){
+      var t = document.documentElement.getAttribute('data-theme');
+      if(t) return t === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    // purple -> orange along the tail
+    function col(t, a){
+      var r = Math.round(108 + (240 - 108) * t);
+      var g = Math.round(76  + (151 - 76)  * t);
+      var b = Math.round(241 + (62  - 241) * t);
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    var tick = 0;
+    function frame(){
+      tick += 0.09;
+      pts[0].x += (mouse.x - pts[0].x) * 0.42;
+      pts[0].y += (mouse.y - pts[0].y) * 0.42;
+      for(var i = 1; i < N; i++){
+        pts[i].x += (pts[i-1].x - pts[i].x) * 0.42;
+        pts[i].y += (pts[i-1].y - pts[i].y) * 0.42;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      var dark = isDark();
+      ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+      for(var i = N - 1; i >= 0; i--){
+        var t = i / (N - 1);
+        // sine wobble perpendicular-ish to the tail for the wavy feel
+        var wob = Math.sin(tick - i * 0.55) * (2 + 7 * t);
+        var x = pts[i].x + wob;
+        var y = pts[i].y + Math.cos(tick - i * 0.55) * (1 + 4 * t);
+        var radius = 11 * (1 - t) + 2;
+        var alpha = (dark ? 0.16 : 0.12) * (1 - t) + 0.015;
+        var g2 = ctx.createRadialGradient(x, y, 0, x, y, radius * 2.6);
+        g2.addColorStop(0, col(t, alpha));
+        g2.addColorStop(1, col(t, 0));
+        ctx.fillStyle = g2;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
 
   var sections = document.querySelectorAll('section[id], header[id]');
   var links = document.querySelectorAll('.top-links a');
