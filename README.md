@@ -1,6 +1,6 @@
-### Hi! I'm Keerthi. I am a senior Fintech marketer — and I build tools that make my team more efficient. 
+### Hi! I'm Keerthi. I am a senior Fintech marketer — and I enjoy build tools that make marketing & growth teams more efficient. 
 
-Every few days I automate another boring part of marketing and ship it here: skills, dashboards, and small apps that do the reading and reporting so the creative work gets more of my time, not less.
+Every few days I automate another part of marketing and ship it here: skills, dashboards, and small apps that do the reading and reporting so the creative work gets more of my time, not less. 
 
 **Into:** campaigns / crypto-fintech / building with Claude Code
 
