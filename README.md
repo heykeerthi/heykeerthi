@@ -5,4 +5,6 @@ Every few days I automate another part of marketing and ship it here: skills, da
 **Into:** campaigns / crypto-fintech / building with Claude Code
 
 📍 currently: automating my way through a marketing stack, one tool at a time. Also building a Fit-tech product [stealth] 
+
+🔗 heykeerthi.vercel.app
 🔗 [linkedin.com/in/keerthi-narendra](#) 
